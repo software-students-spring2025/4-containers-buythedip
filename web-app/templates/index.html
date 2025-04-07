@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Object Recognizer </title>
+</head>
+<body>
+    <h1> Object Recognizer </h1>
+    <form action="/capture" method="post">
+        <button type="submit">Take Photo</button>
+    </form>
+
+    <img src="{{ url_for('video_feed')}}" width = "640" height = "480">
+    
+    {% if captured_images %}
+        <h2>Object Gallery</h2>
+        {% for image in captured_images %}
+            <img src="{{ url_for('static', filename=image) }}" width= "320" height: "240">
+        {% endfor %}
+    {% endif %}
+
+    <h2> Database Results </h2>
+        {% for entry in entries%}
+            <p>{{ entry }}</p>
+        {% endfor %}
+    
+    </body>
+</html>

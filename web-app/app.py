@@ -6,9 +6,10 @@ import cv2
 import pymongo
 from flask import Flask, render_template, Response, request, redirect, url_for
 from pymongo.errors import PyMongoError
+import base64
 
 app = Flask(__name__)
-camera = cv2.VideoCapture(0)
+# camera = cv2.VideoCapture(0)
 mongo_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/containerapp")
 
 try:
@@ -19,18 +20,18 @@ try:
 except PyMongoError as e:
     print(f"Failed to connect to MongoDB: {e}")
 
-
-def gen_frames():
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            ret, buffer = cv2.imencode(".jpg", frame)
-            frame = buffer.tobytes()
-            yield (
-                b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n"
-            )
+# No longer needed since we are using getUserMedia instead of cv2
+# def gen_frames():
+#    while True:
+#        success, frame = camera.read()
+#        if not success:
+#            break
+#        else:
+#            ret, buffer = cv2.imencode(".jpg", frame)
+#            frame = buffer.tobytes()
+#            yield (
+#                b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n"
+#            )
 
 
 @app.route("/")
@@ -45,18 +46,24 @@ def home():
     )
 
 
-@app.route("/video_feed")
-def video_feed():
-    return Response(gen_frames(), mimetype="multipart/x-mixed-replace; boundary=frame")
+# No longer needed since we are using getUserMedia instead of cv2
+# @app.route("/video_feed")
+# def video_feed():
+#    return Response(gen_frames(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
-@app.route("/capture", methods=["POST"])
-def capture():
-    success, frame = camera.read()
-    if success:
-        name = f"captured_{int(time.time())}.jpg"
-        filepath = os.path.join("web-app/static", name)
-        cv2.imwrite(filepath, frame)
+@app.route("/upload", methods=["POST"])
+def upload():
+    data = request.get_json()
+    image_data = data["image"]
+
+    header, encoded = image_data.split(",", 1)
+    binary = base64.b64decode(encoded)
+
+    name = f"web-app/static/captured_{int(time.time())}.jpg"
+    with open(name, "wb") as f:
+        f.write(binary)
+
     return redirect(url_for("home"))
 
 

@@ -9,7 +9,7 @@ from pymongo.errors import PyMongoError
 import base64
 
 app = Flask(__name__)
-#camera = cv2.VideoCapture(0)
+# camera = cv2.VideoCapture(0)
 mongo_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/containerapp")
 
 try:
@@ -20,8 +20,8 @@ try:
 except PyMongoError as e:
     print(f"Failed to connect to MongoDB: {e}")
 
-#No longer needed since we are using getUserMedia instead of cv2
-#def gen_frames():
+# No longer needed since we are using getUserMedia instead of cv2
+# def gen_frames():
 #    while True:
 #        success, frame = camera.read()
 #        if not success:
@@ -45,9 +45,10 @@ def home():
         captured_images=sorted(captured_images, reverse=True),
     )
 
-#No longer needed since we are using getUserMedia instead of cv2
-#@app.route("/video_feed")
-#def video_feed():
+
+# No longer needed since we are using getUserMedia instead of cv2
+# @app.route("/video_feed")
+# def video_feed():
 #    return Response(gen_frames(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
@@ -55,15 +56,16 @@ def home():
 def upload():
     data = request.get_json()
     image_data = data["image"]
-    
+
     header, encoded = image_data.split(",", 1)
     binary = base64.b64decode(encoded)
-    
+
     name = f"web-app/static/captured_{int(time.time())}.jpg"
     with open(name, "wb") as f:
         f.write(binary)
-        
+
     return redirect(url_for("home"))
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)

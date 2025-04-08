@@ -1,17 +1,23 @@
-from flask import Flask, render_template, Response, request, redirect, url_for
-import cv2
+"""Flask app"""  # TODO: update docstring
+
 import os
 import time
+import cv2
 import pymongo
+from flask import Flask, render_template, Response, request, redirect, url_for
+from pymongo.errors import PyMongoError
 
 app = Flask(__name__)
 camera = cv2.VideoCapture(0)
-mongo_uri = os.environ.get("MONDODB_URI", "mongodb://localhost:27017/containerapp")
+mongo_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/containerapp")
 
-try:                                                                                                                        client = pymongo.MongoClient(mongo_uri)
+try:
+    client = pymongo.MongoClient(mongo_uri)
     db = client.get_database()
-    client.admin.command('ping')                                                                                            print("Connected to MongoDB")
-except Exception as e:                                                                                                      print(f"Failed to connect to MongoDB: {e}")
+    client.admin.command("ping")
+    print("Connected to MongoDB")
+except PyMongoError as e:
+    print(f"Failed to connect to MongoDB: {e}")
 
 
 def gen_frames():

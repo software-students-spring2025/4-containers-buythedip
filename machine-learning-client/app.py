@@ -1,14 +1,14 @@
 """ML client for image classification and analysis"""
 
+import json
 import os
 import time
-import json
-import pymongo
-import cv2
+
+import cv2  # pylint: disable=no-member
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+import pymongo
 from pymongo.errors import PyMongoError
+from tensorflow.keras.models import load_model  # type: ignore  # pylint: disable=import-error,no-name-in-module
 
 mongo_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/containerapp")
 
@@ -20,16 +20,16 @@ try:
 except PyMongoError as e:
     print(f"Failed to connect to MongoDB: {e}")
 
-with open("classlist.json", "r") as f:
+with open("classlist.json", "r", encoding="utf-8") as f:
     class_list = json.load(f)
 
-model = load_model("model.h5")
+model = load_model("model.h5")  # type: ignore  # pylint: disable=import-error,no-name-in-module
 
 
 def classify_image(img):
-    """Classify an image using the loaded model"""
-    img_resized = cv2.resize(img, (100, 100))
-    img_rgb = cv2.cvtColor(img_resized, cv2.COLOR_BGR2RGB)
+    """Classify an image using the loaded model."""
+    img_resized = cv2.resize(img, (100, 100))  # pylint: disable=no-member
+    img_rgb = cv2.cvtColor(img_resized, cv2.COLOR_BGR2RGB)  # pylint: disable=no-member
     img_batch = np.expand_dims(img_rgb, axis=0)
 
     prediction = model.predict(img_batch)
@@ -41,7 +41,7 @@ def classify_image(img):
 
 
 def process_pending_images():
-    """Poll database for new images and process them"""
+    """Poll database for new images and process them."""
     while True:
         try:
             pending = db.images.find_one({"status": "pending"})
@@ -50,7 +50,7 @@ def process_pending_images():
                 image_data = pending["image_data"]
 
                 nparr = np.frombuffer(image_data, np.uint8)
-                img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)  # pylint: disable=no-member
 
                 result = classify_image(img)
 
@@ -65,7 +65,6 @@ def process_pending_images():
                         }
                     },
                 )
-
             time.sleep(1)
         except PyMongoError as e:
             print(f"Error processing images: {e}")

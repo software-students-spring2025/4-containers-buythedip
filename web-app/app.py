@@ -1,12 +1,24 @@
-"""Flask app"""  # TODO: update docstring
+"""
+Flask app for Object Recognizer.
 
+This app allows users to capture images using a webcam. A separate ML client
+identifies the fruit in the image and reads out the identification, assisting
+visually impaired users.
+"""
+
+import base64
 import os
 import time
-import cv2
 import pymongo
-from flask import Flask, render_template, Response, request, redirect, url_for
+
+from flask import (
+    Flask,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from pymongo.errors import PyMongoError
-import base64
 
 app = Flask(__name__)
 # camera = cv2.VideoCapture(0)
@@ -36,6 +48,7 @@ except PyMongoError as e:
 
 @app.route("/")
 def home():
+    """Render the home page with processed images and captured images."""
     processed_entries = list(db.images.find({"status": "processed"}))
     images = "static"
     captured_images = [img for img in os.listdir(images) if img.startswith("captured_")]
@@ -54,17 +67,15 @@ def home():
 
 @app.route("/upload", methods=["POST"])
 def upload():
+    """Process uploaded image, store it, and add its record to MongoDB."""
     data = request.get_json()
-    image_data = data["image"]
-
-    header, encoded = image_data.split(",", 1)
+    # Split the data URL and ignore the header part.
+    _header, encoded = data["image"].split(",", 1)
     binary = base64.b64decode(encoded)
 
     timestamp = int(time.time())
     filename = f"captured_{timestamp}.jpg"
-
-    # Temporarily store in static as backup
-    file_path = f"static/{filename}"
+    file_path = os.path.join("static", filename)
     with open(file_path, "wb") as f:
         f.write(binary)
 
@@ -77,7 +88,7 @@ def upload():
         }
         db.images.insert_one(image_doc)
         print(f"Image {filename} stored in MongoDB")
-    except Exception as e:
+    except PyMongoError as e:
         print(f"Error storing image in MongoDB: {e}")
 
     return redirect(url_for("home"))

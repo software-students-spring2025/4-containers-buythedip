@@ -8,6 +8,8 @@ pylint = "*"
 black = "*"
 
 [dev-packages]
+flask = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.10"

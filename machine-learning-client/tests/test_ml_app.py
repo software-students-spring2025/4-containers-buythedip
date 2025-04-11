@@ -1,12 +1,15 @@
-"""Tests for the ML client app"""
+"""
+Tests for the ML client app.
+"""
 
 import os
 import sys
-import pytest
+from tensorflow.keras.models import load_model  # type: ignore
+import cv2
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# pylint: disable=unused-import,import-outside-toplevel
+import app
+from app import mongo_uri
 
 
 class Tests:
@@ -16,8 +19,6 @@ class Tests:
         """
         Assert if MongoDB is properly configured and connecting.
         """
-        from app import mongo_uri
-
         assert isinstance(
             mongo_uri, str
         ), f"Expected mongo_uri to be a string. Instead, it is {type(mongo_uri)}"
@@ -30,24 +31,21 @@ class Tests:
         """
         Assert dependencies can be imported and are installed.
         """
-        try:
-            import tensorflow as tf
-            import numpy as np
-            import pymongo
-        except ImportError as e:
-            pytest.fail(f"Missing critical dependency: {e}")
+        assert "numpy" in sys.modules, "numpy is not imported"
+        assert "pymongo" in sys.modules, "pymongo is not imported"
 
-        try:
-            import cv2
-        except ImportError as e:
-            if "CI" in os.environ:
-                print(f"Warning: OpenCV import error (acceptable in CI): {e}")
-            else:
-                pytest.fail(f"Missing OpenCV dependency: {e}")
+        assert callable(load_model), (
+            "tensorflow.keras.models.load_model is not callable. "
+            "Ensure that TensorFlow and its Keras submodule are correctly installed."
+        )
+
+        assert hasattr(
+            cv2, "resize"
+        ), "cv2 does not have attribute 'resize'. Check that OpenCV is properly installed."
 
     def test_classlist_file_exists(self):
         """
-        Assert classlist.json exists and at correct path.
+        Assert that classlist.json exists at the correct path.
         """
         file_path = "classlist.json"
         assert os.path.exists(
@@ -56,7 +54,7 @@ class Tests:
 
     def test_model_file_exists(self):
         """
-        Assert model.h5 exists and at correct path.
+        Assert that model.h5 exists at the correct path.
         """
         file_path = "model.h5"
         assert os.path.exists(

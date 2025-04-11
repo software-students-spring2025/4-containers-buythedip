@@ -1,14 +1,6 @@
 name: ML Client Build & Test
 
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'machine-learning-client/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'machine-learning-client/**'
+on: [pull_request]
 
 jobs:
   build-and-test:

@@ -1,14 +1,6 @@
 name: Web App Build & Test
 
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'web-app/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'web-app/**'
+on: [pull_request]
 
 jobs:
   build-and-test:

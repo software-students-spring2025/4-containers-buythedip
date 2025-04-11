@@ -36,12 +36,12 @@ except PyMongoError as e:
 
 @app.route("/")
 def home():
-    entries = ["test1", "test2", "test3"]
-    images = "web-app/static"
+    processed_entries = list(db.images.find({"status": "processed"}))
+    images = "static"
     captured_images = [img for img in os.listdir(images) if img.startswith("captured_")]
     return render_template(
         "index.html",
-        entries=entries,
+        entries=processed_entries,
         captured_images=sorted(captured_images, reverse=True),
     )
 
@@ -60,9 +60,25 @@ def upload():
     header, encoded = image_data.split(",", 1)
     binary = base64.b64decode(encoded)
 
-    name = f"web-app/static/captured_{int(time.time())}.jpg"
-    with open(name, "wb") as f:
+    timestamp = int(time.time())
+    filename = f"captured_{timestamp}.jpg"
+
+    # Temporarily store in static as backup
+    file_path = f"static/{filename}"
+    with open(file_path, "wb") as f:
         f.write(binary)
+
+    try:
+        image_doc = {
+            "filename": filename,
+            "timestamp": timestamp,
+            "image_data": binary,
+            "status": "pending",
+        }
+        db.images.insert_one(image_doc)
+        print(f"Image {filename} stored in MongoDB")
+    except Exception as e:
+        print(f"Error storing image in MongoDB: {e}")
 
     return redirect(url_for("home"))
 

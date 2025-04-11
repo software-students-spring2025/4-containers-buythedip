@@ -1,28 +1,39 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title> Object Recognizer </title>
+    <title>Object Recognizer</title>
 </head>
+
 <body>
-    <h1> Object Recognizer </h1>
+    <h1>Object Recognizer</h1>
     <form action="/upload" method="POST">
-        <video id ="video" width="640" height="480" autoplay></video>
-        <br/>
+        <video id="video" width="640" height="480" autoplay></video>
+        <br />
         <button type="submit">Take Photo</button>
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
     </form>
-    
+
     {% if captured_images %}
-        <h2>Object Gallery</h2>
-        {% for image in captured_images %}
-            <img src="{{ url_for('static', filename=image) }}" width= "320" height: "240">
-        {% endfor %}
+    <h2>Object Gallery</h2>
+    {% for image in captured_images %}
+    <img src="{{ url_for('static', filename=image) }}" width="320" height="240" style="margin-right:10px;">
+    {% endfor %}
     {% endif %}
 
-    <h2> Database Results </h2>
-        {% for entry in entries%}
-            <p>{{ entry }}</p>
-        {% endfor %}
+    {% if entries %}
+    <h2>Database Results (Processed Entries)</h2>
+    {% for entry in entries %}
+    <div style="margin-bottom:15px;">
+        <p><strong>File:</strong> {{ entry.filename }}</p>
+        <p><strong>Classification:</strong> {{ entry.classification }}</p>
+        <p><strong>Confidence:</strong> {{ entry.confidence }}</p>
+        <img src="{{ url_for('static', filename=entry.filename) }}" width="320" height="240">
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No processed images found in the database.</p>
+    {% endif %}
 
     <script>
         const live_feed = document.getElementById('video');
@@ -38,8 +49,8 @@
                 console.error("Error accessing webcam: ", err);
             });
 
-        form.addEventListener('submit', function(event) {
-            event.preventDefault(); 
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
 
             context.drawImage(live_feed, 0, 0, screenshot.width, screenshot.height);
             const dataURL = screenshot.toDataURL('image/png');
@@ -51,15 +62,15 @@
                     'Content-Type': 'application/json'
                 }
             })
-            .then(response => {
-                console.log(' Upload successful');
-                window.location.reload();
-            })
-            .catch(error => {
-                console.error('Error uploading image:', error);
-            });
+                .then(response => {
+                    console.log('Upload successful');
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error uploading image:', error);
+                });
         });
     </script>
+</body>
 
-    </body>
 </html>

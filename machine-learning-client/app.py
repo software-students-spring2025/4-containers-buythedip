@@ -9,7 +9,7 @@ import numpy as np
 import pymongo
 from pymongo.errors import PyMongoError
 from tensorflow.keras.models import load_model  # type: ignore  # pylint: disable=import-error,no-name-in-module
-from tensorflow.keras.preprocessing_image import img_to_array   # type: ignore  # pylint: disable=import-error,no-name-in-module
+from tensorflow.keras.preprocessing.image import img_to_array   # type: ignore  # pylint: disable=import-error,no-name-in-module
 
 mongo_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/containerapp")
 
@@ -74,4 +74,3 @@ def process_pending_images():
 
 if __name__ == "__main__":
     process_pending_images()
-    

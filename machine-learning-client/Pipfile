@@ -4,10 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pylint = "*"
-black = "*"
+pymongo = "*"
+numpy = "*"
+opencv-python = "*"
+tensorflow = "*"
+dnspython = "*"
 
 [dev-packages]
+pytest = "*"
+pylint = "*"
+black = "*"
 
 [requires]
 python_version = "3.10"

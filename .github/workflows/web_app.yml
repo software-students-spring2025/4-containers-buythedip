@@ -1,0 +1,26 @@
+name: Web App Build & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Build web app Docker container
+        working-directory: web-app
+        run: |
+          docker build -t web-app:latest .
+        
+      - name: Run tests in web app Docker container
+        run: |
+          docker run --rm web-app:latest pytest

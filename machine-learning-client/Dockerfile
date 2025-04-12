@@ -1,27 +1,25 @@
-# Base image on previously-created image
 FROM python:3.10-slim
 
-# Set the working directory in the image
 WORKDIR /app
 
-# Install system dependencies for OpenCV
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies - doing this first will speed up subsequent builds
+# Copy requirements.txt and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the current directory contents into the container at /app
+# For testing
+RUN pip install pytest pytest-cov mongomock
+
+# Copy the application code
 COPY . .
 
-# Create data directory for images
-RUN mkdir -p /app/data
-
-# Expose port for API
-EXPOSE 5000
-
-# Run app.py when the container launches
+# Command to run the application
 CMD ["python", "app.py"]

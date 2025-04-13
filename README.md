@@ -64,5 +64,8 @@ coverage report
 [Chris Leu](https://github.com/cl3880) <br />
 [Syed Naqvi](https://github.com/syed1naqvi)
 
+## Task Board
+[🔗 Click Here](https://github.com/orgs/software-students-spring2025/projects/202/views/1)
+
 ## License
 This project is licensed under the GNU General Public License. See the [LICENSE](https://github.com/software-students-spring2025/4-containers-buythedip/blob/main/LICENSE) file for details.

@@ -5,9 +5,6 @@ name = "pypi"
 
 [packages]
 pymongo = "*"
-numpy = "*"
-opencv-python = "*"
-tensorflow = "*"
 dnspython = "*"
 
 [dev-packages]

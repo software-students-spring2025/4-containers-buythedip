@@ -4,6 +4,7 @@ Tests for the ML client app.
 
 import os
 import sys
+import numpy as np
 from tensorflow.keras.models import load_model  # type: ignore
 import cv2
 
@@ -60,3 +61,18 @@ class Tests:
         assert os.path.exists(
             file_path
         ), f"Expected model.h5 file at {file_path} but it was not found"
+    
+    def test_classify_image(self):
+        """
+        Tests the classify_image function with a dummy image
+        """
+        dummy = np.zeros((100, 100, 3), dtype=np.uint8) * 255
+        
+        predictions = app.classify_image(dummy)
+        
+        assert isinstance(predictions, list), "Predictions should be a list"
+        assert len(predictions) > 0, "There should be at least one prediction"
+        assert isinstance(predictions[0], tuple), "Each individual prediction should be a tuple"
+        assert isinstance(predictions[0][0], str), "The class name should be the first element of the prediction"
+        assert isinstance(predictions[0][1], float), "The confidence score should be the second element of the prediction"
+        

@@ -22,8 +22,6 @@ services:
       - "5000:5000"
     networks:
       - app_network
-    volumes:
-      - ml_data:/app/data
 
   web_app:
     build:
@@ -35,13 +33,12 @@ services:
     depends_on:
       - mongodb
       - ml_client
-    environment:
-      - MONGODB_URI=mongodb://mongodb:27017/containerapp
-      - ML_CLIENT_URI=http://ml_client:5000
+    env_file:
+      - .env
     networks:
       - app_network
     volumes:
-      - web_data:/app/static
+      - ./web-app/static/css:/app/static/css
 
 networks:
   app_network:
@@ -49,5 +46,3 @@ networks:
 
 volumes:
   mongo_data:
-  ml_data:
-  web_data:

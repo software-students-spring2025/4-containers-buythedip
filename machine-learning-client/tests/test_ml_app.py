@@ -4,12 +4,8 @@ Tests for the ML client app.
 
 import os
 import sys
-from tensorflow.keras.models import load_model  # type: ignore
-import cv2
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import app
-from app import mongo_uri
 
 
 class Tests:
@@ -19,6 +15,8 @@ class Tests:
         """
         Assert if MongoDB is properly configured and connecting.
         """
+        from app import mongo_uri
+
         assert isinstance(
             mongo_uri, str
         ), f"Expected mongo_uri to be a string. Instead, it is {type(mongo_uri)}"
@@ -31,6 +29,11 @@ class Tests:
         """
         Assert dependencies can be imported and are installed.
         """
+        import numpy
+        import pymongo
+        from tensorflow.keras.models import load_model
+        import cv2
+
         assert "numpy" in sys.modules, "numpy is not imported"
         assert "pymongo" in sys.modules, "pymongo is not imported"
 
@@ -60,3 +63,27 @@ class Tests:
         assert os.path.exists(
             file_path
         ), f"Expected model.h5 file at {file_path} but it was not found"
+
+    def test_classify_image(self):
+        """
+        Tests the classify_image function with a dummy image
+        """
+        import numpy as np
+        import app
+        from app import classify_image
+
+        dummy = np.zeros((100, 100, 3), dtype=np.uint8) * 255
+
+        predictions = app.classify_image(dummy)
+
+        assert isinstance(predictions, list), "Predictions should be a list"
+        assert len(predictions) > 0, "There should be at least one prediction"
+        assert isinstance(
+            predictions[0], tuple
+        ), "Each individual prediction should be a tuple"
+        assert isinstance(
+            predictions[0][0], str
+        ), "The class name should be the first element of the prediction"
+        assert isinstance(
+            predictions[0][1], float
+        ), "The confidence score should be the second element of the prediction"

@@ -8,9 +8,6 @@ pymongo = "*"
 dnspython = "*"
 
 [dev-packages]
-numpy = "*"
-opencv-python = "*"
-tensorflow = "*"
 pytest = "*"
 pylint = "*"
 black = "*"

@@ -2,10 +2,14 @@
 <html>
 
 <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>Object Recognizer</title>
 </head>
 
 <body>
+    <div class="logo-h">
+        <a href="https://github.com/software-students-spring2025/4-containers-buythedip/" class="logo-name">buythedip</a>
+    </div>
     <h1>Object Recognizer</h1>
     <form action="/upload" method="POST">
         <video id="video" width="640" height="480" autoplay></video>

@@ -51,10 +51,10 @@ def home():
     """Render the home page with processed images and captured images."""
     processed_entries = list(db.images.find({"status": "processed"}))
 
-    base_dir = os.path.dirname(os.path.abspath(__file__)) 
-    images = os.path.join(base_dir, "static")
+    # base_dir = os.path.dirname(os.path.abspath(__file__)) 
+    # images = os.path.join(base_dir, "static")
 
-    #images = "static"
+    images = "static"
     captured_images = [img for img in os.listdir(images) if img.startswith("captured_")]
     return render_template(
         "index.html",

@@ -8,57 +8,75 @@
 
 <body>
     <div class="logo-h">
-        <a href="https://github.com/software-students-spring2025/4-containers-buythedip/" class="logo-name">buythedip</a>
+        <a href="https://github.com/software-students-spring2025/4-containers-buythedip/"
+            class="logo-name">buythedip</a>
     </div>
     <h1>Object Recognizer</h1>
-    <form action="/upload" method="POST">
+    <div id="camera-section">
         <video id="video" width="640" height="480" autoplay></video>
         <br />
-        <button type="submit">Take Photo</button>
+        <button id="capture-btn">Take Photo</button>
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-    </form>
+    </div>
 
-    {% if captured_images %}
-    <h2>Object Gallery</h2>
-    {% for image in captured_images %}
-    <img src="{{ url_for('static', filename=image) }}" width="320" height="240" style="margin-right:10px;">
-    {% endfor %}
-    {% endif %}
+    <div id="processing-notification" style="display: none;">
+        <div class="spinner"></div>
+        <p>Processing your image. Please wait...</p>
+    </div>
 
     {% if entries %}
-    <h2>Database Results (Processed Entries)</h2>
-    {% for entry in entries %}
-    <div style="margin-bottom:15px;">
-        <p><strong>File:</strong> {{ entry.filename }}</p>
-        <p><strong>Classification:</strong> {{ entry.classification }}</p>
-        <p><strong>Confidence:</strong> {{ entry.confidence }}</p>
-        <img src="{{ url_for('static', filename=entry.filename) }}" width="320" height="240">
+    <h2>Classification Results</h2>
+    <div class="results-grid">
+        {% for entry in entries %}
+        <div class="processed-entry">
+            <h3>{{ entry.top_class }}</h3>
+            <p><strong>Confidence:</strong> {{ entry.confidence }}</p>
+            <p><strong>Definition:</strong> {{ entry.definition }}</p>
+
+            <div class="image-container">
+                <img src="{{ url_for('find_image', image_id=entry._id) }}" alt="{{ entry.top_class }}">
+            </div>
+
+            <div class="classification-details">
+                <h4>Detailed Analysis</h4>
+                <ul class="classifications">
+                    {% for class_info in entry.classifications %}
+                    <li>{{ class_info[0] }}: {{ (class_info[1] * 100)|round(2) }}%</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <p class="timestamp"><small>Processed at {{ entry.processed_at|timestamp_to_datetime }}</small></p>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
     {% else %}
-    <p>No processed images found in the database.</p>
+    <div class="no-results">
+        <p>No processed images found. Take a photo to analyze!</p>
+    </div>
     {% endif %}
 
     <script>
-        const live_feed = document.getElementById('video');
-        const screenshot = document.getElementById('canvas');
-        const context = screenshot.getContext('2d');
-        const form = document.querySelector('form');
-
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const context = canvas.getContext('2d');
+        const processingNotification = document.getElementById('processing-notification');
+        
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
-                live_feed.srcObject = stream;
+                video.srcObject = stream;
             })
             .catch(err => {
-                console.error("Error accessing webcam: ", err);
+                console.error("Error accessing webcam:", err);
             });
 
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            context.drawImage(live_feed, 0, 0, screenshot.width, screenshot.height);
-            const dataURL = screenshot.toDataURL('image/png');
-
+        captureBtn.addEventListener('click', function() {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/jpeg');
+            
+            processingNotification.style.display = 'flex';
+            
             fetch('/upload', {
                 method: 'POST',
                 body: JSON.stringify({ image: dataURL }),
@@ -66,14 +84,41 @@
                     'Content-Type': 'application/json'
                 }
             })
-                .then(response => {
-                    console.log('Upload successful');
-                    window.location.reload();
-                })
-                .catch(error => {
-                    console.error('Error uploading image:', error);
-                });
+            .then(response => response.json())
+            .then(data => {
+                console.log('Upload response:', data);
+                
+                if (data.success) {
+                    checkProcessingStatus();
+                } else {
+                    alert('Error: ' + data.message);
+                    processingNotification.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading image:', error);
+                processingNotification.style.display = 'none';
+                alert('Error uploading image. Please try again.');
+            });
         });
+
+        function checkProcessingStatus() {
+            const pollInterval = setInterval(() => {
+                fetch('/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.pending) {
+                            clearInterval(pollInterval);
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking status:', error);
+                        clearInterval(pollInterval);
+                        processingNotification.style.display = 'none';
+                    });
+            }, 1000);
+        }
     </script>
 </body>
 

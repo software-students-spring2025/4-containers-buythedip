@@ -3,7 +3,7 @@ Flask app for Object Recognizer.
 
 This app allows users to capture images using a webcam. A separate ML client
 identifies the fruit in the image and reads out the identification, assisting
-visually impaired users.
+visually impaired users or kids who are in the process of learning which fruits are what.
 """
 
 import base64
@@ -55,6 +55,7 @@ def home():
     # images = os.path.join(base_dir, "static")
 
     images = "static"
+    
     captured_images = [img for img in os.listdir(images) if img.startswith("captured_")]
     return render_template(
         "index.html",
@@ -73,8 +74,16 @@ def home():
 def upload():
     """Process uploaded image, store it, and add its record to MongoDB."""
     data = request.get_json()
-    # Split the data URL and ignore the header part.
-    _header, encoded = data["image"].split(",", 1)
+
+    try:
+        # Split the data URL and ignore the header part.
+        _header, encoded = data["image"].split(",", 1)
+    except (TypeError, KeyError, ValueError):
+        return "Invalid image data", 400
+    
+    # # Split the data URL and ignore the header part.
+    # _header, encoded = data["image"].split(",", 1)
+    
     binary = base64.b64decode(encoded)
 
     timestamp = int(time.time())

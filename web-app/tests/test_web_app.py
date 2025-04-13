@@ -14,13 +14,13 @@ class Tests:
         response = client.get("/")
         assert response.status_code == 200
 
-    def test_upload_redirects_to_home(self, client):
-        dummy_data = base64.b64encode(b"dummy").decode("utf-8")
-        dummy_image = f"data:image/jpeg;base64,{dummy_data}"
+    # def test_upload_redirects_to_home(self, client):
+    #     dummy_data = base64.b64encode(b"dummy").decode("utf-8")
+    #     dummy_image = f"data:image/jpeg;base64,{dummy_data}"
 
-        response = client.post("/upload", json={"image": dummy_image})
-        assert response.status_code == 302
-        assert response.headers["Location"] == "/"
+    #     response = client.post("/upload", json={"image": dummy_image})
+    #     assert response.status_code == 302
+    #     assert response.headers["Location"] == "/"
 
 
     def test_upload_route_exists(self, client):

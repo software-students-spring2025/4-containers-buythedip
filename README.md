@@ -45,6 +45,8 @@ sudo apt install docker-compose     # download docker for Windows
 docker-compose up --build           # run the docker containers
 ```
 
+Finally, copy the provided `env.example` file to `.env` in the project root, then register with the Merriam-Webster API and replace the `MW_API_KEY` with your actual key (or check the buythedip team channel on Discord for it). This ensures your secrets remain local and are not stored in version control.
+
 ### 3. Run Tests
 Ensure everything works - make sure you are in the correct directories before running these commands:
 ```

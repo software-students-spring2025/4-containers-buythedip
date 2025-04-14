@@ -19,7 +19,7 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/containerapp
     ports:
-      - "5000:5000"
+      - "5050:5000"
     networks:
       - app_network
 

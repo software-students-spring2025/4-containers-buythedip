@@ -23,8 +23,7 @@ from bson.objectid import ObjectId
 load_dotenv()
 
 app = Flask(__name__)
-mongo_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/containerapp")
-
+mongo_uri = mongo_uri = os.getenv("MONGODB_URI")
 try:
     client = pymongo.MongoClient(mongo_uri)
     db = client.get_database()

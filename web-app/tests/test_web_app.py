@@ -4,7 +4,7 @@ import io
 import base64
 import pytest
 from flask import Flask
-
+from app import app
 
 class Tests:
     """Test cases for the web app"""
@@ -58,5 +58,29 @@ class Tests:
         response = client.get("/")
         assert response.status_code == 200
         assert b"No processed images" in response.data or b"Object Gallery" in response.data
+
+    def test_get_definition_valid_word(self):
+        """Checks to see if definitions are being provided"""
+        from app import get_definition
+        result = get_definition("python")
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_get_definition_invalid_word(self):
+        """Checks to see how a random word that does not exist is being handled by the function"""
+        from app import get_definition
+        result = get_definition("asdfghjklqwerty")
+        assert result == "No definition available."
+
+
+
+
+
+
+
+
+
+
+
 
 

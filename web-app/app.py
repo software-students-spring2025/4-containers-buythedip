@@ -1,3 +1,11 @@
+"""
+Flask app for Object Recognizer
+
+This app allows users to capture images using a webcam. A separate ML client
+identifies the fruit in the image and reads out the identification, assisting
+visually impaired users or kids who are in the process of learning which fruits are what.
+"""
+
 import base64
 import os
 import time
@@ -23,7 +31,7 @@ from bson.objectid import ObjectId
 load_dotenv()
 
 app = Flask(__name__)
-mongo_uri = mongo_uri = os.getenv("MONGODB_URI")
+mongo_uri = os.getenv("MONGODB_URI")
 try:
     client = pymongo.MongoClient(mongo_uri)
     db = client.get_database()
@@ -34,37 +42,55 @@ except PyMongoError as e:
 
 
 def clean_name(name):
-    """Clean up the classification name by removing numbers and extra spaces."""
-    clean = re.sub(r"\s*\d+\s*$", "", name)
-    return clean.strip()
+    """Extract the first word from the classification name and clean it."""
+    name = re.sub(r"\s*\d+\s*$", "", name)
+    first_word = name.strip().split()[0]
+    return first_word
 
 
 def extract_complete_definition(entry):
     """
     Traverse the 'def' field in the MW API response entry and extract a complete definition.
-
-    This function concatenates text from the dt items, removes MW formatting, splits the
-    result into sentences, and returns the sentence following the initial brief portion.
+    Handles cases where item[1] can be either a string or a list.
     """
     defs = entry.get("def", [])
+
     for sense in defs:
         sseq = sense.get("sseq", [])
+
         for group in sseq:
             for sense_entry in group:
-                if isinstance(sense_entry, list) and len(sense_entry) >= 2:
-                    dt = sense_entry[1].get("dt", [])
-                    text = " ".join(
-                        item[1]
-                        for item in dt
-                        if isinstance(item, list) and len(item) >= 2
-                    )
-                    text = re.sub(r"\{[^}]+\}", "", text).strip()
-                    sentences = re.split(r"\.\s*", text)
-                    sentences = [s for s in sentences if s.strip()]
-                    if len(sentences) >= 2:
-                        return sentences[1].strip() + "."
-                    elif sentences:
-                        return sentences[0].strip() + "."
+                if not (isinstance(sense_entry, list) and len(sense_entry) >= 2):
+                    continue
+
+                dt = sense_entry[1].get("dt", [])
+                parts = []
+
+                for item in dt:
+                    if not (isinstance(item, list) and len(item) >= 2):
+                        continue
+
+                    content = item[1]
+                    if isinstance(content, str):
+                        parts.append(content)
+                    elif isinstance(content, list):
+                        for sub in content:
+                            if isinstance(sub, dict) and "t" in sub:
+                                parts.append(sub["t"])
+
+                if not parts:
+                    continue
+
+                text = " ".join(parts)
+                text = re.sub(r"\{[^}]+\}", "", text).strip()
+                sentences = re.split(r"\.\s*", text)
+                sentences = [s for s in sentences if s.strip()]
+
+                if len(sentences) >= 2:
+                    return sentences[1].strip() + "."
+                elif sentences:
+                    return sentences[0].strip() + "."
+
     return "No definition available."
 
 
@@ -78,6 +104,7 @@ def get_definition(word):
         "MW_URL", "https://dictionaryapi.com/api/v3/references/collegiate/json"
     )
     url = f"{mw_url}/{word}?key={api_key}"
+
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -107,23 +134,25 @@ def home():
 
     for entry in processed_entries:
         classifications = entry.get("classifications", [])
-        if classifications and len(classifications) > 0:
-            top_class = classifications[0][0]
-            clean_class = clean_name(top_class)
-            entry["top_class"] = clean_class
 
-            definition = get_definition(clean_class)
-            entry["definition"] = definition
-
-            db.images.update_one(
-                {"_id": entry["_id"]},
-                {"$set": {"definition": definition}},
-            )
-            entry["confidence"] = f"{classifications[0][1] * 100:.2f}%"
-        else:
+        if not classifications:
             entry["top_class"] = "Unknown"
             entry["definition"] = "No definition available."
             entry["confidence"] = "0%"
+            continue
+
+        top_class = classifications[0][0]
+        clean_class = clean_name(top_class)
+        entry["top_class"] = clean_class
+
+        definition = get_definition(clean_class)
+        entry["definition"] = definition
+
+        db.images.update_one(
+            {"_id": entry["_id"]},
+            {"$set": {"definition": definition}},
+        )
+        entry["confidence"] = f"{classifications[0][1] * 100:.2f}%"
 
     return render_template("index.html", entries=processed_entries)
 
@@ -160,6 +189,7 @@ def upload():
     binary = base64.b64decode(encoded)
     timestamp = int(time.time())
     formatted_time = datetime.fromtimestamp(timestamp).strftime("%I:%M %p")
+
     try:
         image_doc = {
             "timestamp": timestamp,
